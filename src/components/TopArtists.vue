@@ -63,7 +63,7 @@
                   {{ artist.name }}</router-link
                 >
               </td>
-              <td>{{ artist.genres.join(", ") }}</td>
+              <td>{{ formatGenres(artist.genres) }}</td>
               <td>
                 {{ artist.popularity }}
               </td>
@@ -138,6 +138,13 @@ export default {
           this.artistsToDisplay = this.longTermArtists;
           return;
       }
+    },
+    formatGenres(genres) {
+      const genreList = [];
+      genres.forEach(genre =>
+        genreList.push(genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase()))
+      );
+      return genreList.join(", ");
     }
   }
 };

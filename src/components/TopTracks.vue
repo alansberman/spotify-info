@@ -73,7 +73,10 @@
                 </span>
               </td>
               <td>
-                {{ track.album.name }}
+                <router-link
+                  :to="{ name: 'Album', params: { id: track.album.id } }"
+                  >{{ track.album.name }}</router-link
+                >
               </td>
               <td>{{ getLength(track.duration_ms) }}</td>
               <td>{{ track.popularity }}</td>
