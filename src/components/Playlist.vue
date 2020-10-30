@@ -1,5 +1,14 @@
 <template>
-  <div>
+  <div class="container-fluid" v-if="dataFetched">
+    <div class="row"><br /><br /></div>
+    <div class="row">
+      <div class="col"></div>
+      <div class="col">
+        <h2>{{ playlist.name }} - by {{ playlist.owner.display_name }}</h2>
+      </div>
+      <div class="col"></div>
+    </div>
+    <div class="row"><br /><br /></div>
     <table
       class="table table-bordered table-sm table-striped"
       v-if="tracks.length > 0"
@@ -9,7 +18,7 @@
           <th scope="col">Title</th>
           <th scope="col">Artist</th>
           <th scope="col">Album</th>
-          <th scope="col">Length</th>
+          <th scope="col">Duration</th>
         </tr>
       </thead>
       <tbody>
@@ -47,13 +56,16 @@ export default {
   name: "Playlist",
   props: ["id"],
   data() {
-    return { tracks: [] };
+    return { tracks: [], playlist: {}, dataFetched: false };
   },
   mounted() {
     axios
       .get(`http://localhost:5000/playlist/${this.$route.params.id}`)
       .then(resp => {
-        resp["data"]["items"].forEach(t => this.tracks.push(t["track"]));
+        this.playlist = resp.data;
+        console.log(resp);
+        resp.data.tracks.items.forEach(t => this.tracks.push(t["track"]));
+        this.dataFetched = true;
       });
   },
   methods: {
