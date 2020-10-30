@@ -1,0 +1,78 @@
+<template>
+  <div class="container-fluid">
+    <div class="row">
+      <br />
+      <br />
+    </div>
+    <div class="row">
+      <div class="col"></div>
+      <div class="col">
+        <h4>Playlists</h4>
+      </div>
+      <div class="col"></div>
+    </div>
+    <div class="row">
+      <br />
+      <br />
+    </div>
+    <div class="row">
+      <Playlist v-if="isPlaylist" />
+    </div>
+    <div class="row">
+      <table class="table table-striped table-bordered" v-if="!isPlaylist">
+        <thead class="thead-dark">
+          <tr>
+            <th scope="col">Playlist</th>
+            <th scope="col">Owner</th>
+            <th scope="col">Length</th>
+            <th scope="col">Collaborative</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="p in playlists" :key="p.id">
+            <td>
+              <router-link :to="{ name: 'Playlist', params: { id: p.id } }">{{
+                p.name
+              }}</router-link>
+            </td>
+            <td>{{ p.owner.display_name }}</td>
+            <td>{{ p.tracks.total }}</td>
+            <td>{{ p.collaborative ? "Yes" : "No" }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from "axios";
+import Playlist from "./Playlist";
+export default {
+  name: "Home",
+  components: { Playlist },
+  data: function() {
+    return {
+      playlist: "",
+      playlists: []
+    };
+  },
+  mounted() {
+    axios.get("http://localhost:5000/playlists").then(resp => {
+      resp["data"]["items"].forEach(pl => this.playlists.push(pl));
+    });
+  },
+  computed: {
+    isPlaylist() {
+      return this.$route.name.toLowerCase().includes("playlist");
+    }
+  },
+  methods: {}
+};
+</script>
+
+<style scoped>
+table {
+  margin: 20px 20px;
+}
+</style>
