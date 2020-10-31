@@ -2,6 +2,20 @@
   <div>
     <div
       class="container-fluid"
+      v-if="!(fetchedLongTerm && fetchedMediumTerm && fetchedLongTerm)"
+    >
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">
+          <br /><br /><br /><br /><br />
+          <div class="spinner-border text-success" role="status"></div>
+        </div>
+        <div class="col"></div>
+      </div>
+    </div>
+
+    <div
+      class="container-fluid"
       v-if="fetchedLongTerm && fetchedMediumTerm && fetchedLongTerm"
     >
       <div class="row"><br /><br /></div>
@@ -16,29 +30,29 @@
         <br /><br />
         <div class="col"></div>
         <div class="col">
-          <div class="btn-group" role="group" aria-label="Basic example">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="filterArtists('short')"
-            >
-              Short-Term
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="filterArtists('medium')"
-            >
-              Medium-Term
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="filterArtists('long')"
-            >
-              Long-Term
-            </button>
-          </div>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            @click="filterArtists('short')"
+          >
+            Short-Term
+          </button>
+          &nbsp;
+          <button
+            type="button"
+            class="btn btn-secondary"
+            @click="filterArtists('medium')"
+          >
+            Medium-Term
+          </button>
+          &nbsp;
+          <button
+            type="button"
+            class="btn btn-secondary"
+            @click="filterArtists('long')"
+          >
+            Long-Term
+          </button>
 
           <br /><br />
         </div>
@@ -63,11 +77,28 @@
                   {{ artist.name }}</router-link
                 >
               </td>
-              <td>{{ formatGenres(artist.genres) }}</td>
+
+              <td>
+                <!--                {{ formatGenres(artist.genres) }}-->
+                <span
+                  v-for="(genre, index) in artist.genres"
+                  :key="`genre.${genre}`"
+                >
+                  <span v-if="index !== 0">, </span>
+                  <router-link
+                    :to="{
+                      name: 'Genre',
+                      params: { name: formatGenreForLink(genre) }
+                    }"
+                  >
+                    {{ formatGenreName(genre) }}</router-link
+                  >
+                </span>
+              </td>
               <td>
                 {{ artist.popularity }}
               </td>
-              <td>{{ artist.followers.total }}</td>
+              <td>{{ artist.followers.total.toLocaleString() }}</td>
             </tr>
           </tbody>
         </table>
@@ -139,12 +170,13 @@ export default {
           return;
       }
     },
-    formatGenres(genres) {
-      const genreList = [];
-      genres.forEach(genre =>
-        genreList.push(genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase()))
-      );
-      return genreList.join(", ");
+    formatGenreForLink(genre) {
+      const formattedGenre = genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+      formattedGenre.replace(" ", "%20");
+      return formattedGenre;
+    },
+    formatGenreName(genre) {
+      return genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
     }
   }
 };

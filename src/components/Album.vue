@@ -1,5 +1,16 @@
 <template>
   <div>
+    <div class="container-fluid" v-if="!dataFetched">
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">
+          <br /><br /><br /><br /><br />
+          <div class="spinner-border text-success" role="status"></div>
+        </div>
+        <div class="col"></div>
+      </div>
+    </div>
+
     <div class="container-fluid" v-if="dataFetched">
       <div class="row"><br /><br /></div>
       <div class="row">
@@ -89,6 +100,12 @@
           </table>
         </div>
         <div class="col">
+          <div v-if="summary.length > 0">
+            <h3>Summary</h3>
+            <p v-text="summary"></p>
+          </div>
+        </div>
+        <div class="col">
           <h3>Album Cover</h3>
           <img :src="album.image.url" class="img-fluid" alt="Album photo" />
         </div>
@@ -105,6 +122,7 @@ export default {
   data() {
     return {
       album: {},
+      summary: "",
       dataFetched: false,
       tracks: []
     };
@@ -129,6 +147,18 @@ export default {
         this.album.artists = [];
         resp.data.artists.forEach(artist => this.album.artists.push(artist));
         resp.data.tracks.items.forEach(track => this.tracks.push(track));
+
+        const nameToSearch = this.album.name.replace(" ", "%20");
+        axios
+          .get(`http://localhost:5000/${nameToSearch}/summary`)
+          .then(resp => {
+            if (this.isMusicRelated(resp.data)) {
+              this.summary = resp.data;
+            } else {
+              this.summary = "";
+            }
+          });
+
         this.dataFetched = true;
       });
   },
@@ -143,6 +173,16 @@ export default {
       const minutes = Math.floor(length / 60000);
       const seconds = ((length % 60000) / 1000).toFixed(0);
       return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    },
+    isMusicRelated(content) {
+      content = content.toString();
+      return (
+        content.includes("music") ||
+        content.includes("band") ||
+        content.includes("artist") ||
+        content.includes("song") ||
+        content.includes("composer")
+      );
     }
   }
 };

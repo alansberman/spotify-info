@@ -35,6 +35,11 @@
               <router-link to="/top-artists">My Top Artists</router-link>
             </div>
           </li>
+          <li class="nav-item">
+            <div class="nav-link">
+              <router-link to="/glossary">Glossary</router-link>
+            </div>
+          </li>
         </ul>
       </div>
     </nav>

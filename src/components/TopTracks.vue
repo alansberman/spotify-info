@@ -2,6 +2,20 @@
   <div>
     <div
       class="container-fluid"
+      v-if="!(fetchedLongTerm && fetchedMediumTerm && fetchedLongTerm)"
+    >
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">
+          <br /><br /><br /><br /><br />
+          <div class="spinner-border text-success" role="status"></div>
+        </div>
+        <div class="col"></div>
+      </div>
+    </div>
+
+    <div
+      class="container-fluid"
       v-if="fetchedLongTerm && fetchedMediumTerm && fetchedLongTerm"
     >
       <div class="row"><br /><br /></div>
@@ -16,29 +30,29 @@
         <br /><br />
         <div class="col"></div>
         <div class="col">
-          <div class="btn-group" role="group" aria-label="Basic example">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="filterTracks('short')"
-            >
-              Short-Term
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="filterTracks('medium')"
-            >
-              Medium-Term
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="filterTracks('long')"
-            >
-              Long-Term
-            </button>
-          </div>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            @click="filterTracks('short')"
+          >
+            Short-Term
+          </button>
+          &nbsp;
+          <button
+            type="button"
+            class="btn btn-secondary"
+            @click="filterTracks('medium')"
+          >
+            Medium-Term
+          </button>
+          &nbsp;
+          <button
+            type="button"
+            class="btn btn-secondary"
+            @click="filterTracks('long')"
+          >
+            Long-Term
+          </button>
 
           <br /><br />
         </div>

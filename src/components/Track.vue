@@ -1,6 +1,26 @@
 <template>
-  <div v-if="detailsFetched && analysisFetched && featuresFetched">
-    <div class="container-fluid">
+  <div>
+    <div
+      class="container-fluid"
+      v-if="
+        !(detailsFetched && analysisFetched && featuresFetched && lyricsFetched)
+      "
+    >
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">
+          <br /><br /><br /><br /><br />
+          <div class="spinner-border text-success" role="status"></div>
+        </div>
+        <div class="col"></div>
+      </div>
+    </div>
+    <div
+      class="container-fluid"
+      v-if="
+        detailsFetched && analysisFetched && featuresFetched && lyricsFetched
+      "
+    >
       <br />
 
       <div class="row">
@@ -73,6 +93,10 @@
                 <td>{{ track.energy }}</td>
               </tr>
               <tr>
+                <td>Instrumentalness</td>
+                <td>{{ track.instrumentalness }}</td>
+              </tr>
+              <tr>
                 <td>Liveness</td>
                 <td>{{ track.liveness }}</td>
               </tr>
@@ -91,7 +115,16 @@
             </tbody>
           </table>
         </div>
+        <div class="col" v-if="lyrics.length > 0">
+          <div>
+            <h3>Lyrics</h3>
+            <div v-for="(line, index) in lyrics" :key="index">{{ line }}</div>
+          </div>
+        </div>
         <div class="col">
+          <!--          <div v-if="summary.length > 0">-->
+          <!--            <p v-text="summary"></p>-->
+          <!--          </div>-->
           <img :src="track.image.url" class="img-fluid" alt="Album photo" />
         </div>
       </div>
@@ -110,6 +143,9 @@ export default {
       detailsFetched: false,
       featuresFetched: false,
       analysisFetched: false,
+      lyricsFetched: false,
+      summary: "",
+      lyrics: [],
       fullKey: String,
       beatConfidences: []
     };
@@ -139,6 +175,33 @@ export default {
             this.track.album_popularity = resp.data.popularity;
             this.track.album_release_date = resp.data.release_date;
           });
+
+        const nameToSearch = this.track.name.replace(" ", "%20");
+        const artistNameToSearch = this.track.artists[0].name.replace(
+          " ",
+          "%20"
+        );
+        // axios
+        //   .get(`http://localhost:5000/${nameToSearch}/summary`)
+        //   .then(resp => {
+        //     if (this.isMusicRelated(resp.data)) {
+        //       this.summary = resp.data;
+        //     } else {
+        //       this.summary = "";
+        //     }
+        //   });
+
+        axios
+          .get(
+            `http://localhost:5000/track/${nameToSearch}/artist/${artistNameToSearch}/lyrics`
+          )
+          .then(resp => {
+            if (resp.data.lyrics) {
+              this.lyrics = resp.data.lyrics.split("\n");
+            }
+            this.lyricsFetched = true;
+          });
+
         this.detailsFetched = true;
       });
     axios
@@ -174,6 +237,7 @@ export default {
         this.track.mode = resp.data[0].mode;
         this.track.speechiness = resp.data[0].speechiness;
         this.track.tempo = resp.data[0].tempo;
+        this.track.instrumentalness = resp.data[0].instrumentalness;
         this.track.time_signature = resp.data[0].time_signature;
         this.track.valence = resp.data[0].valence;
         this.featuresFetched = true;
@@ -213,6 +277,17 @@ export default {
     getFullKey() {
       const mood = this.track.mode === 1 ? "Maj" : "Min";
       return this.getKey() + " " + mood;
+    },
+
+    isMusicRelated: function(content) {
+      content = content.toString();
+      return (
+        content.includes("music") ||
+        content.includes("band") ||
+        content.includes("artist") ||
+        content.includes("song") ||
+        content.includes("composer")
+      );
     },
 
     getBeatConfidence() {

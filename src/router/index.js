@@ -7,6 +7,8 @@ import TopTracks from "../components/TopTracks";
 import TopArtists from "../components/TopArtists";
 import Artist from "../components/Artist";
 import Album from "../components/Album";
+import Glossary from "../components/Glossary";
+import Genre from "../components/Genre";
 Vue.use(VueRouter);
 
 const routes = [
@@ -26,9 +28,20 @@ const routes = [
     component: TopArtists
   },
   {
+    path: "/glossary",
+    name: "Glossary",
+    component: Glossary
+  },
+  {
     path: "/playlist/:id",
     name: "Playlist",
     component: Playlist,
+    props: true
+  },
+  {
+    path: "/genre/:name",
+    name: "Genre",
+    component: Genre,
     props: true
   },
   {
