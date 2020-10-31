@@ -37,6 +37,11 @@
           </li>
           <li class="nav-item">
             <div class="nav-link">
+              <router-link to="/search">Search</router-link>
+            </div>
+          </li>
+          <li class="nav-item">
+            <div class="nav-link">
               <router-link to="/glossary">Glossary</router-link>
             </div>
           </li>

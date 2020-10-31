@@ -18,7 +18,7 @@
           <th scope="col">Title</th>
           <th scope="col">Artist</th>
           <th scope="col">Album</th>
-          <th scope="col">Duration</th>
+          <th scope="col"><i class="far fa-clock"></i></th>
         </tr>
       </thead>
       <tbody>

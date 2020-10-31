@@ -36,11 +36,23 @@
             </div>
           </div>
         </div>
-        <div class="col" v-if="artist.genres.length > 0">
+        <div class="col">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">{{ artist.genres.join(", ") }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">Genres</h6>
+              <h5 class="card-title">
+                <span
+                  v-for="(artist, index) in artist.relatedArtists"
+                  :key="artist.id"
+                >
+                  <span v-if="index !== 0">, </span>
+                  <router-link
+                    :to="{ name: 'Artist', params: { id: artist.id } }"
+                  >
+                    {{ artist.name }}</router-link
+                  >
+                </span>
+              </h5>
+              <h6 class="card-subtitle mb-2 text-muted">Related Artists</h6>
               <p class="card-text"></p>
             </div>
           </div>
@@ -60,7 +72,7 @@
       <div class="row"><br /><br /></div>
       <div class="row">
         <div class="col">
-          <h3>Top 10 Tracks</h3>
+          <h3>Top Tracks</h3>
           <table class="table table-striped table-bordered">
             <thead class="thead-dark">
               <tr>
@@ -108,44 +120,12 @@ export default {
       topTracksFetched: false,
       summaryFetched: false,
       summary: "",
-      topTracks: []
+      topTracks: [],
+      loading: false
     };
   },
   mounted() {
-    axios
-      .get(`http://localhost:5000/artist/${this.$route.params.id}`)
-      .then(resp => {
-        this.artist = resp.data;
-        this.artist.name = resp.data.name;
-        this.artist.popularity = resp.data.popularity;
-        this.artist.genres = [];
-        this.artist.followers = resp.data.followers.total;
-        this.artist.image = resp.data.images[0];
-        resp.data.genres.forEach(genre =>
-          this.artist.genres.push(
-            genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase())
-          )
-        );
-        const nameToSearch = this.artist.name.replace(" ", "%20");
-        axios
-          .get(`http://localhost:5000/${nameToSearch}/summary`)
-          .then(resp => {
-            if (this.isMusicRelated(resp.data)) {
-              this.summary = resp.data;
-            } else {
-              this.summary = "";
-            }
-            this.summaryFetched = true;
-          });
-
-        this.dataFetched = true;
-      });
-    axios
-      .get(`http://localhost:5000/artist/${this.$route.params.id}/top-tracks`)
-      .then(resp => {
-        resp.data.tracks.forEach(track => this.topTracks.push(track));
-        this.topTracksFetched = true;
-      });
+    this.getData();
   },
   methods: {
     isMusicRelated(content) {
@@ -157,6 +137,75 @@ export default {
         content.includes("song") ||
         content.includes("composer")
       );
+    },
+    getData() {
+      this.loading = true;
+      axios
+        .get(`http://localhost:5000/artist/${this.$route.params.id}`)
+        .then(resp => {
+          console.log(resp);
+          this.artist = resp.data;
+          this.artist.name = resp.data.name;
+          this.artist.relatedArtists = [];
+          this.artist.popularity = resp.data.popularity;
+          this.artist.genres = [];
+          this.artist.followers = resp.data.followers.total;
+          this.artist.image = resp.data.images[0];
+          resp.data.genres.forEach(genre =>
+            this.artist.genres.push(
+              genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase())
+            )
+          );
+          const nameToSearch = this.artist.name.replace(" ", "%20");
+          axios
+            .get(`http://localhost:5000/${nameToSearch}/summary`)
+            .then(resp => {
+              if (this.isMusicRelated(resp.data)) {
+                // Strip out annoying titles like '== Background =='
+                this.summary = resp.data.replace(
+                  /\s[=]{2,3}\s[^]*\s[=]{2,3}\s/g,
+                  ""
+                );
+              } else {
+                this.summary = "";
+              }
+              this.summaryFetched = true;
+            });
+
+          axios
+            .get(
+              `http://localhost:5000/artist/${this.$route.params.id}/related`
+            )
+            .then(resp =>
+              resp.data.artists.forEach(artist =>
+                this.artist.relatedArtists.push(artist)
+              )
+            );
+
+          this.dataFetched = true;
+        });
+
+      axios
+        .get(`http://localhost:5000/artist/${this.$route.params.id}/top-tracks`)
+        .then(resp => {
+          resp.data.tracks.forEach(track => this.topTracks.push(track));
+          this.topTracksFetched = true;
+        });
+      this.loading = false;
+    }
+  },
+  computed: {
+    // thanks to https://github.com/vuejs/vue-router/issues/311
+    getFullPath() {
+      return this.$route.path;
+    }
+  },
+  watch: {
+    getFullPath() {
+      this.dataFetched = false;
+      this.summaryFetched = false;
+      this.topTracksFetched = false;
+      this.getData();
     }
   }
 };

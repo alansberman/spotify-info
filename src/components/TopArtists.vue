@@ -79,7 +79,6 @@
               </td>
 
               <td>
-                <!--                {{ formatGenres(artist.genres) }}-->
                 <span
                   v-for="(genre, index) in artist.genres"
                   :key="`genre.${genre}`"

@@ -36,7 +36,7 @@
             </span>
           </h3>
           <h4>
-            Off the {{ formatReleaseDate }} album "<router-link
+            off the {{ formatReleaseDate }} album "<router-link
               :to="{ name: 'Album', params: { id: track.album.id } }"
               >{{ track.album.name }}</router-link
             >"
@@ -82,23 +82,23 @@
               </tr>
               <tr>
                 <td>Acousticness</td>
-                <td>{{ track.acousticness }}</td>
+                <td>{{ track.acousticness.toFixed(2) }}</td>
               </tr>
               <tr>
                 <td>Danceability</td>
-                <td>{{ track.danceability }}</td>
+                <td>{{ track.danceability.toFixed(2) }}</td>
               </tr>
               <tr>
                 <td>Energy</td>
-                <td>{{ track.energy }}</td>
+                <td>{{ track.energy.toFixed(2) }}</td>
               </tr>
               <tr>
                 <td>Instrumentalness</td>
-                <td>{{ track.instrumentalness }}</td>
+                <td>{{ track.instrumentalness.toFixed(2) }}</td>
               </tr>
               <tr>
                 <td>Liveness</td>
-                <td>{{ track.liveness }}</td>
+                <td>{{ track.liveness.toFixed(2) }}</td>
               </tr>
               <tr>
                 <td>Loudness</td>
@@ -106,11 +106,11 @@
               </tr>
               <tr>
                 <td>Speechiness</td>
-                <td>{{ track.speechiness }}</td>
+                <td>{{ track.speechiness.toFixed(2) }}</td>
               </tr>
               <tr>
                 <td>Valence</td>
-                <td>{{ track.valence }}</td>
+                <td>{{ track.valence.toFixed(2) }}</td>
               </tr>
             </tbody>
           </table>
@@ -118,7 +118,9 @@
         <div class="col" v-if="lyrics.length > 0">
           <div>
             <h3>Lyrics</h3>
-            <div v-for="(line, index) in lyrics" :key="index">{{ line }}</div>
+            <div class="overflow-auto" style="height: 550px; width: 600px">
+              <div v-for="(line, index) in lyrics" :key="index">{{ line }}</div>
+            </div>
           </div>
         </div>
         <div class="col">
@@ -176,7 +178,9 @@ export default {
             this.track.album_release_date = resp.data.release_date;
           });
 
-        const nameToSearch = this.track.name.replace(" ", "%20");
+        // Remove e.g. - 2006 Remaster
+        let nameToSearch = this.track.name.split("-")[0];
+        nameToSearch = nameToSearch.replace(/\s/g, "%20");
         const artistNameToSearch = this.track.artists[0].name.replace(
           " ",
           "%20"
@@ -196,6 +200,7 @@ export default {
             `http://localhost:5000/track/${nameToSearch}/artist/${artistNameToSearch}/lyrics`
           )
           .then(resp => {
+            console.log(resp);
             if (resp.data.lyrics) {
               this.lyrics = resp.data.lyrics.split("\n");
             }

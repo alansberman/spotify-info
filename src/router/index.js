@@ -9,6 +9,7 @@ import Artist from "../components/Artist";
 import Album from "../components/Album";
 import Glossary from "../components/Glossary";
 import Genre from "../components/Genre";
+import Search from "../components/Search";
 Vue.use(VueRouter);
 
 const routes = [
@@ -16,6 +17,11 @@ const routes = [
     path: "/",
     name: "Home",
     component: Home
+  },
+  {
+    path: "/search",
+    name: "Search",
+    component: Search
   },
   {
     path: "/top-tracks",

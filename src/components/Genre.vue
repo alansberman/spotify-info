@@ -1,17 +1,29 @@
 <template>
-  <div class="container-fluid" v-if="summaryFetched">
-    <div class="row">
-      <div class="col"></div>
-      <div class="col">
-        <br /><br />
-        <h2>{{ genreName }}</h2>
-        <br /><br />
+  <div>
+    <div class="container-fluid" v-if="!summaryFetched">
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">
+          <br /><br /><br /><br /><br />
+          <div class="spinner-border text-success" role="status"></div>
+        </div>
+        <div class="col"></div>
       </div>
-      <div class="col"></div>
     </div>
-    <div class="row">
-      <div class="col">
-        <p v-text="summary"></p>
+    <div class="container-fluid" v-if="summaryFetched">
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">
+          <br /><br />
+          <h2>{{ genreName }}</h2>
+          <br /><br />
+        </div>
+        <div class="col"></div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <p v-text="summary"></p>
+        </div>
       </div>
     </div>
   </div>

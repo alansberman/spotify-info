@@ -38,13 +38,13 @@
             </div>
           </div>
         </div>
-        <div class="col">
+        <div class="col" v-if="album.genres.length > 0">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title" v-if="album.genres.length > 0">
+              <h5 class="card-title">
                 {{ album.genres.join(", ") }}
               </h5>
-              <h5 class="card-title" v-else>N/A</h5>
+              <h5 class="card-title">N/A</h5>
               <h6 class="card-subtitle mb-2 text-muted">Genres</h6>
               <p class="card-text"></p>
             </div>
@@ -53,7 +53,7 @@
         <div class="col">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">{{ album.type }}</h5>
+              <h5 class="card-title">{{ formatAlbumType }}</h5>
               <h6 class="card-subtitle mb-2 text-muted">Album Type</h6>
               <p class="card-text"></p>
             </div>
@@ -69,7 +69,7 @@
               <tr>
                 <th scope="col">Title</th>
                 <th scope="col">Artists</th>
-                <th scope="col">Duration</th>
+                <th scope="col"><i class="far fa-clock"></i></th>
               </tr>
             </thead>
             <tbody>
@@ -165,6 +165,9 @@ export default {
   computed: {
     formatReleaseDate() {
       return this.album.release_date.split("-")[0];
+    },
+    formatAlbumType() {
+      return this.album.type === "Album" ? "Full-length" : this.album.type;
     }
   },
   methods: {
