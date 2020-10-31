@@ -45,7 +45,8 @@ export default {
       .get(`http://localhost:5000/${this.$route.params.name}/summary`)
       .then(resp => {
         if (typeof resp.data === "string") {
-          this.summary = resp.data;
+          // Strip out annoying titles like '== Background =='
+          this.summary = resp.data.replace(/\s[=]{2,3}\s[^]*\s[=]{2,3}\s/g, "");
         } else {
           this.summary = "Unable to fetch genre information.";
         }

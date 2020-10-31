@@ -13,7 +13,6 @@
         <div class="col"></div>
       </div>
     </div>
-
     <div
       class="container-fluid"
       v-if="dataFetched && topTracksFetched && summaryFetched"
@@ -22,7 +21,9 @@
       <div class="row">
         <div class="col"></div>
         <div class="col">
-          <h2>{{ artist.name }}</h2>
+          <h2>
+            <a :href="artist.external_urls.spotify">{{ artist.name }}</a>
+          </h2>
         </div>
         <div class="col"></div>
       </div>
@@ -64,7 +65,9 @@
                 {{ artist.followers.toLocaleString() }}
               </h5>
               <h6 class="card-subtitle mb-2 text-muted">Followers</h6>
-              <p class="card-text"></p>
+              <p class="card-text">
+                <button type="button" class="btn btn-dark">Follow</button>
+              </p>
             </div>
           </div>
         </div>
@@ -120,8 +123,7 @@ export default {
       topTracksFetched: false,
       summaryFetched: false,
       summary: "",
-      topTracks: [],
-      loading: false
+      topTracks: []
     };
   },
   mounted() {
@@ -139,7 +141,6 @@ export default {
       );
     },
     getData() {
-      this.loading = true;
       axios
         .get(`http://localhost:5000/artist/${this.$route.params.id}`)
         .then(resp => {
@@ -188,10 +189,10 @@ export default {
       axios
         .get(`http://localhost:5000/artist/${this.$route.params.id}/top-tracks`)
         .then(resp => {
+          this.topTracks = [];
           resp.data.tracks.forEach(track => this.topTracks.push(track));
           this.topTracksFetched = true;
         });
-      this.loading = false;
     }
   },
   computed: {
