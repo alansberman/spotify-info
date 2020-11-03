@@ -58,15 +58,13 @@ export default {
   data() {
     return { tracks: [], playlist: {}, dataFetched: false };
   },
-  mounted() {
-    axios
-      .get(`http://localhost:5000/playlist/${this.$route.params.id}`)
-      .then(resp => {
-        this.playlist = resp.data;
-        console.log(resp);
-        resp.data.tracks.items.forEach(t => this.tracks.push(t["track"]));
-        this.dataFetched = true;
-      });
+  async mounted() {
+    let resp = await axios.get(
+      `http://localhost:5000/playlist/${this.$route.params.id}`
+    );
+    this.playlist = resp.data;
+    resp.data.tracks.items.forEach(t => this.tracks.push(t["track"]));
+    this.dataFetched = true;
   },
   methods: {
     getLength(length) {

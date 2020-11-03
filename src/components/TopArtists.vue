@@ -32,26 +32,26 @@
         <div class="col">
           <button
             type="button"
-            class="btn btn-secondary"
+            class="btn btn-success"
             @click="filterArtists('short')"
           >
-            Short-Term
+            Last 4 weeks
           </button>
           &nbsp;
           <button
             type="button"
-            class="btn btn-secondary"
+            class="btn btn-success"
             @click="filterArtists('medium')"
           >
-            Medium-Term
+            Last 6 months
           </button>
           &nbsp;
           <button
             type="button"
-            class="btn btn-secondary"
+            class="btn btn-success"
             @click="filterArtists('long')"
           >
-            Long-Term
+            All-time
           </button>
 
           <br /><br />
@@ -95,7 +95,12 @@
                 </span>
               </td>
               <td>
-                {{ artist.popularity }}
+                <b-progress show-progress>
+                  <b-progress-bar
+                    :value="artist.popularity"
+                    variant="success"
+                  ></b-progress-bar>
+                </b-progress>
               </td>
               <td>{{ artist.followers.total.toLocaleString() }}</td>
             </tr>
@@ -123,31 +128,34 @@ export default {
       fetchedLongTerm: false
     };
   },
-  mounted() {
-    axios.get("http://localhost:5000/my-top-artists/short_term").then(resp => {
-      resp.data.items.forEach(artist => {
-        this.artists.push(artist);
-        this.shortTermArtists.push(artist);
-        this.artistsToDisplay.push(artist);
-      });
-      this.fetchedShortTerm = true;
+  async mounted() {
+    let response = await axios.get(
+      "http://localhost:5000/my-top-artists/short_term"
+    );
+    response.data.items.forEach(artist => {
+      this.artists.push(artist);
+      this.shortTermArtists.push(artist);
+      this.artistsToDisplay.push(artist);
     });
+    this.fetchedShortTerm = true;
 
-    axios.get("http://localhost:5000/my-top-artists/medium_term").then(resp => {
-      resp.data.items.forEach(artist => {
-        this.artists.push(artist);
-        this.mediumTermArtists.push(artist);
-      });
-      this.fetchedMediumTerm = true;
+    response = await axios.get(
+      "http://localhost:5000/my-top-artists/medium_term"
+    );
+    response.data.items.forEach(artist => {
+      this.artists.push(artist);
+      this.mediumTermArtists.push(artist);
     });
+    this.fetchedMediumTerm = true;
 
-    axios.get("http://localhost:5000/my-top-artists/long_term").then(resp => {
-      resp.data.items.forEach(artist => {
-        this.artists.push(artist);
-        this.longTermArtists.push(artist);
-      });
-      this.fetchedLongTerm = true;
+    response = await axios.get(
+      "http://localhost:5000/my-top-artists/long_term"
+    );
+    response.data.items.forEach(artist => {
+      this.artists.push(artist);
+      this.longTermArtists.push(artist);
     });
+    this.fetchedLongTerm = true;
   },
   methods: {
     getLength(length) {
@@ -181,4 +189,8 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.btn-success {
+  background-color: #3eaf7c;
+}
+</style>

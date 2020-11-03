@@ -71,10 +71,9 @@ export default {
       fetchedData: false
     };
   },
-  mounted() {
-    axios.get("http://localhost:5000/playlists").then(resp => {
-      resp["data"]["items"].forEach(pl => this.playlists.push(pl));
-    });
+  async mounted() {
+    let resp = await axios.get("http://localhost:5000/playlists");
+    resp["data"]["items"].forEach(pl => this.playlists.push(pl));
     this.fetchedData = true;
   },
   computed: {

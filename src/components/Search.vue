@@ -92,7 +92,14 @@
                   {{ artist.name }}</router-link
                 >
               </td>
-              <td>{{ artist.popularity }}</td>
+              <td>
+                <b-progress show-progress>
+                  <b-progress-bar
+                    :value="artist.popularity"
+                    variant="success"
+                  ></b-progress-bar>
+                </b-progress>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -167,39 +174,35 @@ export default {
     };
   },
   methods: {
-    search() {
-      axios
-        .get(`http://localhost:5000/search/${this.searchQuery}/tracks`)
-        .then(resp => {
-          this.tracks = [];
-          resp.data.tracks.items.forEach(element => {
-            this.tracks.push(element);
-          });
-        });
-      axios
-        .get(`http://localhost:5000/search/${this.searchQuery}/artists`)
-        .then(resp => {
-          this.artists = [];
-          resp.data.artists.items.forEach(element => {
-            this.artists.push(element);
-          });
-        });
-      axios
-        .get(`http://localhost:5000/search/${this.searchQuery}/albums`)
-        .then(resp => {
-          this.albums = [];
-          resp.data.albums.items.forEach(element => {
-            this.albums.push(element);
-          });
-        });
-      axios
-        .get(`http://localhost:5000/search/${this.searchQuery}/playlists`)
-        .then(resp => {
-          this.playlists = [];
-          resp.data.playlists.items.forEach(element => {
-            this.playlists.push(element);
-          });
-        });
+    async search() {
+      let response = await axios.get(
+        `http://localhost:5000/search/${this.searchQuery}/tracks`
+      );
+      this.tracks = [];
+      response.data.tracks.items.forEach(element => {
+        this.tracks.push(element);
+      });
+      response = await axios.get(
+        `http://localhost:5000/search/${this.searchQuery}/artists`
+      );
+      this.artists = [];
+      response.data.artists.items.forEach(element => {
+        this.artists.push(element);
+      });
+      response = await axios.get(
+        `http://localhost:5000/search/${this.searchQuery}/albums`
+      );
+      this.albums = [];
+      response.data.albums.items.forEach(element => {
+        this.albums.push(element);
+      });
+      response = await axios.get(
+        `http://localhost:5000/search/${this.searchQuery}/playlists`
+      );
+      this.playlists = [];
+      response.data.playlists.items.forEach(element => {
+        this.playlists.push(element);
+      });
     }
   }
 };

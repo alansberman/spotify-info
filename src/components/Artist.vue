@@ -2,7 +2,14 @@
   <div>
     <div
       class="container-fluid"
-      v-if="!(dataFetched && topTracksFetched && summaryFetched)"
+      v-if="
+        !(
+          dataFetched &&
+          topTracksFetched &&
+          summaryFetched &&
+          relatedArtistsFetched
+        )
+      "
     >
       <div class="row">
         <div class="col"></div>
@@ -15,7 +22,12 @@
     </div>
     <div
       class="container-fluid"
-      v-if="dataFetched && topTracksFetched && summaryFetched"
+      v-if="
+        dataFetched &&
+          topTracksFetched &&
+          summaryFetched &&
+          relatedArtistsFetched
+      "
     >
       <div class="row"><br /><br /></div>
       <div class="row">
@@ -31,9 +43,21 @@
         <div class="col">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">{{ artist.popularity }}</h5>
+              <h5 class="card-title">
+                <b-progress show-progress>
+                  <b-progress-bar
+                    :value="artist.popularity"
+                    variant="success"
+                  ></b-progress-bar>
+                </b-progress>
+              </h5>
               <h6 class="card-subtitle mb-2 text-muted">Popularity</h6>
-              <p class="card-text"></p>
+              <div v-if="artist.genre">
+                <h5 class="card-title">{{ artist.genre }}</h5>
+              </div>
+              <div v-if="artist.country">
+                <h5 class="card-title">From {{ artist.country }}</h5>
+              </div>
             </div>
           </div>
         </div>
@@ -92,19 +116,36 @@
                     {{ track.name }}</router-link
                   >
                 </td>
-                <td>{{ track.popularity }}</td>
+                <td>
+                  <b-progress show-progress>
+                    <b-progress-bar
+                      :value="track.popularity"
+                      variant="success"
+                    ></b-progress-bar>
+                  </b-progress>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="col" v-if="summary.length > 0">
+        <div class="col" v-if="summary.length > 0 || artist.backupSummary">
           <div>
             <h3>Summary</h3>
-            <p v-text="summary"></p>
+            <div class="overflow-auto" style="height: 550px; width: 600px">
+              <p v-if="summary.length > 0" v-text="summary"></p>
+              <p v-else v-text="artist.backupSummary"></p>
+            </div>
           </div>
         </div>
         <div class="col">
-          <img :src="artist.image.url" class="img-fluid" alt="Album photo" />
+          <h3>Cover Photo</h3>
+
+          <img
+            :src="artist.image.url"
+            class="img-fluid"
+            alt="Album photo"
+            style="height: 550px; width: 600px"
+          />
         </div>
       </div>
     </div>
@@ -121,6 +162,7 @@ export default {
       artist: {},
       dataFetched: false,
       topTracksFetched: false,
+      relatedArtistsFetched: false,
       summaryFetched: false,
       summary: "",
       topTracks: []
@@ -144,7 +186,6 @@ export default {
       axios
         .get(`http://localhost:5000/artist/${this.$route.params.id}`)
         .then(resp => {
-          console.log(resp);
           this.artist = resp.data;
           this.artist.name = resp.data.name;
           this.artist.relatedArtists = [];
@@ -159,6 +200,20 @@ export default {
           );
           const nameToSearch = this.artist.name.replace(" ", "%20");
           axios
+            .get(`http://localhost:5000/artist/${nameToSearch}/info`)
+            .then(resp => {
+              if (resp.data.artists) {
+                const artistResp = resp.data.artists[0];
+                this.artist.formedYear = artistResp.intFormedYear;
+                this.artist.country = artistResp.strCountry;
+                this.artist.genre = artistResp.strGenre;
+
+                this.artist.backupSummary = artistResp.strBiographyEN;
+              }
+              this.dataFetched = true;
+            });
+
+          axios
             .get(`http://localhost:5000/${nameToSearch}/summary`)
             .then(resp => {
               if (this.isMusicRelated(resp.data)) {
@@ -172,18 +227,15 @@ export default {
               }
               this.summaryFetched = true;
             });
+        });
 
-          axios
-            .get(
-              `http://localhost:5000/artist/${this.$route.params.id}/related`
-            )
-            .then(resp =>
-              resp.data.artists.forEach(artist =>
-                this.artist.relatedArtists.push(artist)
-              )
-            );
-
-          this.dataFetched = true;
+      axios
+        .get(`http://localhost:5000/artist/${this.$route.params.id}/related`)
+        .then(resp => {
+          resp.data.artists.forEach(artist =>
+            this.artist.relatedArtists.push(artist)
+          );
+          this.relatedArtistsFetched = true;
         });
 
       axios

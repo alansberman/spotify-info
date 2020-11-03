@@ -32,7 +32,14 @@
         <div class="col">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">{{ album.popularity }}</h5>
+              <h5 class="card-title">
+                <b-progress show-progress>
+                  <b-progress-bar
+                    :value="album.popularity"
+                    variant="success"
+                  ></b-progress-bar>
+                </b-progress>
+              </h5>
               <h6 class="card-subtitle mb-2 text-muted">Popularity</h6>
               <p class="card-text"></p>
             </div>
@@ -127,40 +134,35 @@ export default {
       tracks: []
     };
   },
-  mounted() {
-    axios
-      .get(`http://localhost:5000/album/${this.$route.params.id}`)
-      .then(resp => {
-        this.album.name = resp.data.name;
-        this.album.type = resp.data.album_type.replace(/(^\w|\s\w)/g, m =>
-          m.toUpperCase()
-        );
-        this.album.popularity = resp.data.popularity;
-        this.album.genres = [];
-        this.album.release_date = resp.data.release_date;
-        this.album.image = resp.data.images[0];
-        resp.data.genres.forEach(genre =>
-          this.album.genres.push(
-            genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase())
-          )
-        );
-        this.album.artists = [];
-        resp.data.artists.forEach(artist => this.album.artists.push(artist));
-        resp.data.tracks.items.forEach(track => this.tracks.push(track));
+  async mounted() {
+    let response = await axios.get(
+      `http://localhost:5000/album/${this.$route.params.id}`
+    );
 
-        const nameToSearch = this.album.name.replace(" ", "%20");
-        axios
-          .get(`http://localhost:5000/${nameToSearch}/summary`)
-          .then(resp => {
-            if (this.isMusicRelated(resp.data)) {
-              this.summary = resp.data;
-            } else {
-              this.summary = "";
-            }
-          });
+    this.album.name = response.data.name;
+    this.album.type = response.data.album_type.replace(/(^\w|\s\w)/g, m =>
+      m.toUpperCase()
+    );
+    this.album.popularity = response.data.popularity;
+    this.album.genres = [];
+    this.album.release_date = response.data.release_date;
+    this.album.image = response.data.images[0];
+    response.data.genres.forEach(genre =>
+      this.album.genres.push(genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase()))
+    );
+    this.album.artists = [];
+    response.data.artists.forEach(artist => this.album.artists.push(artist));
+    response.data.tracks.items.forEach(track => this.tracks.push(track));
 
-        this.dataFetched = true;
-      });
+    const nameToSearch = this.album.name.replace(" ", "%20");
+    response = await axios.get(`http://localhost:5000/${nameToSearch}/summary`);
+    if (this.isMusicRelated(response.data)) {
+      this.summary = response.data;
+    } else {
+      this.summary = "";
+    }
+
+    this.dataFetched = true;
   },
   computed: {
     formatReleaseDate() {
