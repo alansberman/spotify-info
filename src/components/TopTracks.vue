@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="back shadow">
     <div
       class="container-fluid"
       v-if="!(fetchedLongTerm && fetchedMediumTerm && fetchedLongTerm)"
@@ -22,7 +22,7 @@
       <div class="row">
         <div class="col"></div>
         <div class="col">
-          <h2>My Top Tracks</h2>
+          <h2>My Top Tracks ({{ formatPeriod }})</h2>
         </div>
         <div class="col"></div>
       </div>
@@ -181,7 +181,10 @@
         <div class="col"></div>
       </div>
       <div class="row">
-        <table class="table table-striped table-bordered">
+        <table
+          class="table table-striped table-bordered"
+          style="margin: 13px 13px"
+        >
           <thead class="thead-dark">
             <tr>
               <th scope="col">Title</th>
@@ -239,7 +242,7 @@ export default {
       mediumTermTracks: [],
       longTermTracks: [],
       show: "short_term",
-      showFeatureGraphs: true,
+      showFeatureGraphs: false,
       averages: {
         acousticness: 0,
         danceability: 0,
@@ -297,7 +300,7 @@ export default {
     this.fetchData();
   },
   computed: {
-    // Convert e.g. short_term to Short-term
+    // Convert e.g. short_term to Last 4 weeks
     formatPeriod: function() {
       let period = "";
       switch (this.show) {

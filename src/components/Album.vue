@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div class="container-fluid" v-if="!dataFetched">
+  <div class="bg-light">
+    <div class="container-fluid " v-if="!dataFetched">
       <div class="row">
         <div class="col"></div>
         <div class="col">
@@ -135,34 +135,45 @@ export default {
     };
   },
   async mounted() {
-    let response = await axios.get(
-      `http://localhost:5000/album/${this.$route.params.id}`
-    );
+    try {
+      let response = await axios.get(
+        `http://localhost:5000/album/${this.$route.params.id}`
+      );
 
-    this.album.name = response.data.name;
-    this.album.type = response.data.album_type.replace(/(^\w|\s\w)/g, m =>
-      m.toUpperCase()
-    );
-    this.album.popularity = response.data.popularity;
-    this.album.genres = [];
-    this.album.release_date = response.data.release_date;
-    this.album.image = response.data.images[0];
-    response.data.genres.forEach(genre =>
-      this.album.genres.push(genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase()))
-    );
-    this.album.artists = [];
-    response.data.artists.forEach(artist => this.album.artists.push(artist));
-    response.data.tracks.items.forEach(track => this.tracks.push(track));
+      this.album.name = response.data.name;
+      this.album.type = response.data.album_type.replace(/(^\w|\s\w)/g, m =>
+        m.toUpperCase()
+      );
+      this.album.popularity = response.data.popularity;
+      this.album.genres = [];
+      this.album.release_date = response.data.release_date;
+      this.album.image = response.data.images[0];
+      response.data.genres.forEach(genre =>
+        this.album.genres.push(
+          genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase())
+        )
+      );
+      this.album.artists = [];
+      response.data.artists.forEach(artist => this.album.artists.push(artist));
+      response.data.tracks.items.forEach(track => this.tracks.push(track));
 
-    const nameToSearch = this.album.name.replace(" ", "%20");
-    response = await axios.get(`http://localhost:5000/${nameToSearch}/summary`);
-    if (this.isMusicRelated(response.data)) {
-      this.summary = response.data;
-    } else {
-      this.summary = "";
+      const nameToSearch = this.album.name.replace(" ", "%20");
+      response = await axios.get(
+        `http://localhost:5000/${nameToSearch}/summary`
+      );
+      if (this.isMusicRelated(response.data)) {
+        this.summary = response.data.replace(
+          /\s[=]{2,3}\s[^]*\s[=]{2,3}\s/g,
+          ""
+        );
+      } else {
+        this.summary = "";
+      }
+
+      this.dataFetched = true;
+    } catch (error) {
+      console.error(error);
     }
-
-    this.dataFetched = true;
   },
   computed: {
     formatReleaseDate() {

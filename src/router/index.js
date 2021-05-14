@@ -6,10 +6,13 @@ import Track from "../components/Track";
 import TopTracks from "../components/TopTracks";
 import TopArtists from "../components/TopArtists";
 import Artist from "../components/Artist";
+import Login from "../components/Authentication/Login";
 import Album from "../components/Album";
 import Glossary from "../components/Glossary";
 import Genre from "../components/Genre";
 import Search from "../components/Search";
+import Discover from "../components/Discover";
+import Callback from "../components/Callback";
 Vue.use(VueRouter);
 
 const routes = [
@@ -17,6 +20,21 @@ const routes = [
     path: "/",
     name: "Home",
     component: Home
+  },
+  {
+    path: "/login",
+    name: "Login",
+    component: Login
+  },
+  {
+    path: "/discover",
+    name: "Discover",
+    component: Discover
+  },
+  {
+    path: "/callback",
+    name: "Callback",
+    component: Callback
   },
   {
     path: "/search",

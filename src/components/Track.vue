@@ -1,9 +1,8 @@
 <template>
-  <div>
+  <div class="back shadow">
     <div
-      class="container-fluid"
       v-if="
-        !(detailsFetched && analysisFetched && featuresFetched && lyricsFetched)
+        !(detailsFetched && analysisFetched && featuresFetched) // && lyricsFetched)
       "
     >
       <div class="row">
@@ -17,9 +16,7 @@
     </div>
     <div
       class="container-fluid"
-      v-if="
-        detailsFetched && analysisFetched && featuresFetched && lyricsFetched
-      "
+      v-if="detailsFetched && analysisFetched && featuresFetched && fetchedData"
     >
       <br />
 
@@ -419,17 +416,96 @@
             </tbody>
           </table>
         </div>
-        <div class="col" v-if="lyrics.length > 0">
+        <div class="col" v-if="track.lyrics">
           <div>
             <h3>Lyrics</h3>
             <div class="overflow-auto" style="height: 600px; width: 600px">
-              <div v-for="(line, index) in lyrics" :key="index">{{ line }}</div>
+              <div v-for="(line, index) in track.lyrics" :key="index">
+                <div
+                  v-if="
+                    Object.keys(track.annotations)
+                      .map(entry => entry.includes(line))
+                      .includes(true) &&
+                      !track.annotations[
+                        Object.keys(track.annotations).find(x =>
+                          x.includes(line)
+                        )
+                      ]['seen']
+                  "
+                >
+                  <div
+                    v-b-popover.hover="getAnnotationValue(line)"
+                    title=""
+                    style="color: rgb(62, 175, 124)"
+                  >
+                    {{ line }}
+                  </div>
+                </div>
+                <div v-else>
+                  {{ line }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
         <div class="col">
           <h4>Album Cover</h4>
           <img :src="track.image.url" class="img-fluid" alt="Album photo" />
+        </div>
+      </div>
+
+      <div
+        class="row"
+        v-if="
+          detailsFetched && analysisFetched && featuresFetched && fetchedData
+        "
+      >
+        <div class="col">
+          <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+              <tr>
+                <th scope="col">Credit</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in track.performances" :key="item.label">
+                <td>{{ item.label }}</td>
+                <td>
+                  {{ item.names.join(", ") }}
+                </td>
+              </tr>
+              <tr v-if="track.producers.length > 0">
+                <td>Producer(s)</td>
+                <td>{{ track.producers.join(", ") }}</td>
+              </tr>
+              <tr v-if="track.writers.length > 0">
+                <td>Writer(s)</td>
+                <td>{{ track.writers.join(", ") }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
+          <table
+            class="table table-striped table-bordered"
+            v-if="track.relationships.length > 0"
+          >
+            <thead class="thead-dark">
+              <tr>
+                <th scope="col">Relationships</th>
+                <th scope="col">Songs</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in track.relationships" :key="item.relationship">
+                <td>{{ formatRelationship(item.relationship) }}</td>
+                <td>
+                  {{ item.songs.join(", ") }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -447,10 +523,11 @@ export default {
       detailsFetched: false,
       addedTrack: false,
       failedToAddTrack: false,
+      fetchedData: false,
       featuresFetched: false,
       playlistAddedTo: String,
       analysisFetched: false,
-      lyricsFetched: false,
+      //    lyricsFetched: false,
       playlistCompared: {},
       summary: "",
 
@@ -463,7 +540,7 @@ export default {
         "instrumentalness",
         "valence"
       ],
-      lyrics: [],
+      // lyrics: [],
       modalShow: false,
       modalTitle: "",
       playlists: [],
@@ -502,17 +579,17 @@ export default {
       this.track.album_release_date = resp.data.release_date;
 
       // Remove e.g. - 2006 Remaster
-      let nameToSearch = this.track.name.split("-")[0];
-      nameToSearch = nameToSearch.replace(/\s/g, "%20");
-      const artistNameToSearch = this.track.artists[0].name.replace(" ", "%20");
+      // let nameToSearch = this.track.name.split("-")[0];
+      // nameToSearch = nameToSearch.replace(/\s/g, "%20");
+      // const artistNameToSearch = this.track.artists[0].name.replace(" ", "%20");
 
-      resp = await axios.get(
-        `http://localhost:5000/track/${nameToSearch}/artist/${artistNameToSearch}/lyrics`
-      );
-      if (resp.data.lyrics) {
-        this.lyrics = resp.data.lyrics.split("\n");
-      }
-      this.lyricsFetched = true;
+      // resp = await axios.get(
+      //   `http://localhost:5000/track/${nameToSearch}/artist/${artistNameToSearch}/lyrics`
+      // );
+      // if (resp.data.lyrics) {
+      //   this.lyrics = resp.data.lyrics.split("\n");
+      // }
+      // this.lyricsFetched = true;
 
       this.detailsFetched = true;
       resp = await axios.get(
@@ -546,7 +623,6 @@ export default {
       this.track.instrumentalness = resp.data[0].instrumentalness;
       this.track.time_signature = resp.data[0].time_signature;
       this.track.valence = resp.data[0].valence;
-      this.featuresFetched = true;
 
       // Get playlists
       resp = await axios.get("http://localhost:5000/playlists");
@@ -555,6 +631,62 @@ export default {
           this.playlists.push(pl);
         }
       });
+
+      const name = this.track.name.split("-")[0];
+
+      resp = await axios.get(
+        `http://localhost:5000/track/${name}/artist/${this.track.artists[0].name}/info`
+      );
+      if (!(JSON.stringify(resp) === "{}")) {
+        if (resp.data.id) {
+          const annotations = await axios.get(
+            `http://localhost:5000/track/${resp.data.id}/annotations`
+          );
+          if (!(JSON.stringify(annotations) === "{}")) {
+            this.track.annotations = null;
+            this.track.annotations = annotations.data;
+            for (const [key, value] of Object.entries(this.track.annotations)) {
+              this.track.annotations[key] = { value: value, seen: false };
+            }
+          }
+        }
+
+        // get performances (roles)
+        this.track.performances = [];
+        if (resp.data.custom_performances) {
+          resp.data.custom_performances.forEach(p => {
+            this.track.performances.push({
+              label: p.label,
+              names: p.artists.map(a => a.name)
+            });
+          });
+        }
+        this.track.description = resp.data.description
+          ? resp.data.description.plain
+          : null;
+        this.track.producers = resp.data.producer_artists.map(pa => pa.name);
+        this.track.relationships = [];
+        resp.data.song_relationships?.forEach(rel => {
+          if (rel.songs.length > 0) {
+            this.track.relationships.push({
+              relationship: rel.relationship_type,
+              songs: rel.songs.map(r => r.full_title)
+            });
+          }
+        });
+        this.track.writers = [];
+        this.track.lyrics =
+          resp.data.lyrics_state === "complete"
+            ? resp.data.lyrics.split("\n").filter(item => item !== "")
+            : null;
+        console.log(this.track.annotations);
+        resp.data.writer_artists.forEach(writer => {
+          this.track.writers.push(writer.name);
+        });
+        this.track.writers.join(" | ");
+      }
+      this.featuresFetched = true;
+
       this.fetchedData = true;
     },
 
@@ -589,6 +721,32 @@ export default {
 
     getProgressValue(property) {
       return this.track[property].toFixed(2) * 100;
+    },
+
+    formatRelationship(relationship) {
+      const rel = relationship.split("_");
+      return `${rel[0].substr(0, 1).toUpperCase() + rel[0].substr(1)} ${
+        rel[1]
+      }`;
+    },
+
+    getAnnotationValue(lyric) {
+      return this.track.annotations[
+        Object.keys(this.track.annotations).find(x => x.includes(lyric))
+      ]["value"];
+    },
+
+    setAnnotation(lyric) {
+      if (
+        Object.keys(this.track.annotations)
+          .map(entry => entry.includes(lyric))
+          .includes(true)
+      ) {
+        this.track.annotations[
+          Object.keys(this.track.annotations).find(x => x.includes(lyric))
+        ]["seen"] = true;
+      }
+      return "";
     },
 
     async showModal(playlist) {
@@ -639,6 +797,11 @@ export default {
       );
     },
 
+    // thanks to https://github.com/vuejs/vue-router/issues/311
+    getFullPath() {
+      return this.$route.path;
+    },
+
     getBeatConfidence() {
       return (
         this.beatConfidences.reduce((acc, curr) => acc + curr, 0) /
@@ -649,6 +812,15 @@ export default {
     formatReleaseDate() {
       return this.track.album.release_date.split("-")[0];
     }
+  },
+  watch: {
+    getFullPath() {
+      this.detailsFetched = false;
+      //this.lyricsFetched = false;
+      this.featuresFetched = false;
+      this.analysisFetched = false;
+      this.getData();
+    }
   }
 };
 </script>
@@ -656,9 +828,5 @@ export default {
 <style scoped>
 .list-group {
   margin: 2px;
-}
-
-.btn-success {
-  background-color: #3eaf7c;
 }
 </style>

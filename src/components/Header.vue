@@ -42,6 +42,11 @@
           </li>
           <li class="nav-item">
             <div class="nav-link">
+              <router-link to="/discover">Discover</router-link>
+            </div>
+          </li>
+          <li class="nav-item">
+            <div class="nav-link">
               <router-link to="/glossary">Glossary</router-link>
             </div>
           </li>
@@ -67,13 +72,30 @@
           </span>
         </div>
       </span>
+      <div>w</div>
+      <div v-if="isLoggedIn">
+        <button
+          class="btn btn-outline-success my-2 my-sm-0"
+          v-on:click="logout"
+        >
+          Logout
+        </button>
+      </div>
+      <div v-else>
+        <button
+          class="btn btn-outline-success my-2 my-sm-0"
+          v-on:click="logout"
+        >
+          Login
+        </button>
+      </div>
     </nav>
   </div>
 </template>
 
-<script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
-
 <script>
+import _ from "lodash";
+
 import axios from "axios";
 export default {
   name: "Header.vue",
@@ -91,11 +113,13 @@ export default {
     this.fetchCurrentlyPlaying();
   },
   watch: {
-    currentName: function() {
-      this.debouncedGetCurrentTrack = _.debounce(
-        this.fetchCurrentlyPlaying,
-        500
-      );
+    currentlyPlayingTrack: function() {
+      _.debounce(this.fetchCurrentlyPlaying, 500);
+    }
+  },
+  computed: {
+    isLoggedIn() {
+      return this.$store.state.jwt && this.$store.state.jwt.length > 0;
     }
   },
   methods: {
@@ -116,6 +140,17 @@ export default {
           }
         }
       }
+    },
+
+    async logout() {
+      await axios.get(`http://localhost:8001/auth/logout`, {
+        headers: {
+          Authorization: "Bearer " + this.$store.state.jwt
+        }
+      });
+      this.$store.commit("removeToken");
+
+      this.$router.push({ name: "Login" });
     },
 
     refreshCurrentlyPlaying() {

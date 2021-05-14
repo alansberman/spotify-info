@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="back shadow">
     <div
       class="container-fluid"
       v-if="!(fetchedLongTerm && fetchedMediumTerm && fetchedLongTerm)"
@@ -20,7 +20,30 @@
     >
       <div class="row"><br /><br /></div>
       <div class="row">
-        <div class="col"></div>
+        <div class="col">
+          <div class="card">
+            <br />
+
+            <h5 class="card-title">My Top Genres - {{ formatPeriod }}</h5>
+            <h6>
+              <span
+                v-for="(genre, index) in topGenres"
+                :key="`genres.${genre}`"
+              >
+                <span v-if="index !== 0">, </span>
+                <router-link
+                  :to="{
+                    name: 'Genre',
+                    params: { name: formatGenreForLink(genre) }
+                  }"
+                >
+                  {{ formatGenreName(genre) }}</router-link
+                >
+              </span>
+            </h6>
+            <br />
+          </div>
+        </div>
         <div class="col">
           <h2>My Top Artists</h2>
         </div>
@@ -33,7 +56,7 @@
           <button
             type="button"
             class="btn btn-success"
-            @click="filterArtists('short')"
+            @click="filterArtists('short_term')"
           >
             Last 4 weeks
           </button>
@@ -41,7 +64,7 @@
           <button
             type="button"
             class="btn btn-success"
-            @click="filterArtists('medium')"
+            @click="filterArtists('medium_term')"
           >
             Last 6 months
           </button>
@@ -49,7 +72,7 @@
           <button
             type="button"
             class="btn btn-success"
-            @click="filterArtists('long')"
+            @click="filterArtists('long_term')"
           >
             All-time
           </button>
@@ -59,7 +82,10 @@
         <div class="col"></div>
       </div>
       <div class="row">
-        <table class="table table-striped table-bordered">
+        <table
+          class="table table-striped table-bordered"
+          style="margin: 13px 13px"
+        >
           <thead class="thead-dark">
             <tr>
               <th scope="col">Name</th>
@@ -112,6 +138,7 @@
 </template>
 
 <script>
+import _ from "lodash";
 import axios from "axios";
 export default {
   name: "TopArtists",
@@ -120,8 +147,9 @@ export default {
       artists: [],
       artistsToDisplay: [],
       shortTermArtists: [],
-      show: "short",
+      show: "short_term",
       mediumTermArtists: [],
+      topGenres: [],
       longTermArtists: [],
       fetchedShortTerm: false,
       fetchedMediumTerm: false,
@@ -156,6 +184,8 @@ export default {
       this.longTermArtists.push(artist);
     });
     this.fetchedLongTerm = true;
+
+    this.getTopGenres();
   },
   methods: {
     getLength(length) {
@@ -165,25 +195,65 @@ export default {
       return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
     },
     filterArtists(period) {
+      this.show = period;
       switch (period) {
-        case "short":
+        case "short_term":
           this.artistsToDisplay = this.shortTermArtists;
+          this.getTopGenres();
           return;
-        case "medium":
+        case "medium_term":
           this.artistsToDisplay = this.mediumTermArtists;
+          this.getTopGenres();
+
           return;
-        case "long":
+        case "long_term":
           this.artistsToDisplay = this.longTermArtists;
+          this.getTopGenres();
+
           return;
       }
     },
+
     formatGenreForLink(genre) {
       const formattedGenre = genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
       formattedGenre.replace(" ", "%20");
       return formattedGenre;
     },
+
     formatGenreName(genre) {
       return genre.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+    },
+
+    getTopGenres() {
+      const genres = [].concat(
+        ...this.artistsToDisplay.map(artist => artist.genres)
+      );
+      const freq = _.countBy(genres);
+      // thanks to https://stackoverflow.com/questions/1069666/sorting-object-property-by-values/37607084#37607084
+      let entries = Object.entries(freq);
+      let sorted = entries.sort((a, b) => b[1] - a[1]);
+      this.topGenres = [];
+      for (let index = 0; index < 5; index++) {
+        this.topGenres.push(sorted[index][0]);
+      }
+    }
+  },
+  computed: {
+    // Convert e.g. short_term to Last 4 weeks
+    formatPeriod: function() {
+      let period = "";
+      switch (this.show) {
+        case "short_term":
+          period = "last 4 weeks";
+          break;
+        case "medium_term":
+          period = "last 6 months";
+          break;
+        case "long_term":
+          period = "all-time";
+          break;
+      }
+      return period;
     }
   }
 };

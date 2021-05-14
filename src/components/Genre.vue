@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="bg-light">
     <div class="container-fluid" v-if="!summaryFetched">
       <div class="row">
         <div class="col"></div>

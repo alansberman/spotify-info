@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="back shadow">
     <div class="container-fluid" v-if="!fetchedData">
       <div class="row">
         <div class="col"></div>

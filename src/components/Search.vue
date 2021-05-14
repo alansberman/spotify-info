@@ -26,6 +26,7 @@
               class="btn btn-outline-secondary"
               type="button"
               id="button-addon2"
+              v-on:keyup.enter="search"
               @click="search"
             >
               Go
@@ -35,15 +36,26 @@
       </div>
       <div class="col"></div>
     </div>
-    <!-- <div class="row" v-if="searched">
-      <div class="col"></div>
-      <div class="col">
-        <h4>Search results for "{{ searchQuery }}"</h4>
+
+    <div class="container-fluid" v-if="searching">
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">
+          <br /><br /><br /><br /><br />
+          <div class="spinner-border text-success" role="status"></div>
+        </div>
+        <div class="col"></div>
       </div>
-      <div class="col"></div>
-    </div> -->
-    <div class="row" v-if="tracks.length > 0">
+    </div>
+
+    <div
+      class="row back shadow"
+      v-if="
+        fetchedTracks && fetchedAlbums && fetchedArtists && fetchedPlaylists
+      "
+    >
       <div class="col">
+        <br />
         <h3>Tracks</h3>
         <table class="table table-striped table-bordered">
           <thead class="thead-dark">
@@ -75,6 +87,7 @@
       </div>
 
       <div class="col">
+        <br />
         <h3>Artists</h3>
         <table class="table table-striped table-bordered">
           <thead class="thead-dark">
@@ -105,6 +118,7 @@
         </table>
       </div>
       <div class="col">
+        <br />
         <h3>Albums</h3>
         <table class="table table-striped table-bordered">
           <thead class="thead-dark">
@@ -135,6 +149,7 @@
         </table>
       </div>
       <div class="col">
+        <br />
         <h3>Playlists</h3>
         <table class="table table-striped table-bordered">
           <thead class="thead-dark">
@@ -170,11 +185,22 @@ export default {
       artists: [],
       albums: [],
       tracks: [],
+      fetchedTracks: false,
+      fetchedArtists: false,
+      fetchedAlbums: false,
+      searching: false,
+      fetchedPlaylists: false,
       playlists: []
     };
   },
   methods: {
     async search() {
+      this.searching = true;
+      this.fetchedTracks = false;
+      this.fetchedArtists = false;
+      this.fetchedAlbums = false;
+      this.fetchedPlaylists = false;
+
       let response = await axios.get(
         `http://localhost:5000/search/${this.searchQuery}/tracks`
       );
@@ -182,6 +208,8 @@ export default {
       response.data.tracks.items.forEach(element => {
         this.tracks.push(element);
       });
+      this.fetchedTracks = true;
+
       response = await axios.get(
         `http://localhost:5000/search/${this.searchQuery}/artists`
       );
@@ -189,6 +217,8 @@ export default {
       response.data.artists.items.forEach(element => {
         this.artists.push(element);
       });
+      this.fetchedArtists = true;
+
       response = await axios.get(
         `http://localhost:5000/search/${this.searchQuery}/albums`
       );
@@ -196,6 +226,8 @@ export default {
       response.data.albums.items.forEach(element => {
         this.albums.push(element);
       });
+      this.fetchedAlbums = true;
+
       response = await axios.get(
         `http://localhost:5000/search/${this.searchQuery}/playlists`
       );
@@ -203,6 +235,8 @@ export default {
       response.data.playlists.items.forEach(element => {
         this.playlists.push(element);
       });
+      this.fetchedPlaylists = true;
+      this.searching = false;
     }
   }
 };
